@@ -1,0 +1,42 @@
+:bootstrap:
+  # this is total time we expect any instances to bootstrap
+  # to chef.
+  :converged_by: 1800
+:aws:
+  # only region is required when using iam which is recommended
+  :access_key_id: 'AWS Access Key'
+  :secret_access_key: 'AWS Secret Access Key'
+  :region: 'us-west-2'
+:sqs:
+  :queue: 'https://sqs.us-west-2.amazonaws.com/1234/cloudwatch-events'
+# :sensu:
+#  :url: 'http://sensu.example.com:4567'
+:chef:
+  :url: 'https://chef.example.com/organizations/example'
+  :client: 'somebody'
+  :key: '/path/to/client.pem'
+:hipchat:
+  :api_token: 'Hipchat API token'
+  :room: 'Notifications'
+  :enable: false
+:slack:
+  :webhook_url: 'https://hooks.slack.com/services/XXXXXXXX/YYYYYYY/ZZZZZZZZZZZZZZZZ'
+  :channel: '#notifications'
+  :username: 'aws-cleaner'
+  :icon_emoji: ':ghost:'
+  :enable: true
+:webhooks:
+  example-webhook:
+    :url: 'http://localhost/nodes/{fqdn}'
+    :method: GET
+    :template_variables:
+      :variable: 'fqdn'
+      :method: 'get_chef_fqdn'
+      :argument: '@instance_id'
+    :chat:
+      :enable: true
+      :message: 'Did something to node {node}'
+      :variable: 'node'
+      :method: 'get_chef_node_name'
+      :argument: '@instance_id'
+:poll_time: 60:poll_time: 60
