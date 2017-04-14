@@ -96,9 +96,8 @@ loop do
       p 'node elaspsed time is too high'
       notification = "node: #{@instance_id} has not checked in, "
       notification += 'it should have converged by: '
-      notification += "#{@config[:bootstrap][:converged_by]} "
-      notification += 'and has been running since:and has been '
-      notification += "running since: #{elapsed_time}"
+      notification += "#{@config[:bootstrap][:converged_by]} seconds "
+      notification += "and has been running since: #{launch_time}"
       AwsCleaner::Notify.notify_chat(notification, @config)
     end
   end
