@@ -3,6 +3,15 @@ class AwsWatcher
   require 'aws_cleaner/aws_cleaner.rb'
   module Chef
     include AwsCleaner::Chef
+    def self.registered?(instance_id, config)
+      chef = AwsCleaner::Chef.client(config)
+      results = chef.search.query(:node, "ec2_instance_id:#{instance_id} OR chef_provisioning_reference_server_id:#{instance_id}")
+      if results.rows.empty?
+        false
+      else
+        true
+      end
+    end
   end
 
   module SQS

@@ -53,9 +53,9 @@ loop do
     visibility_timeout: 3
   ).messages
 
-  puts "Got #{messages.size} messages"
+  puts "Got #{messages.size} message(s)"
   messages.each_with_index do |message, index|
-    puts "Looking at message number #{index}"
+    puts "Looking at message number #{index}" unless messages.size.zero?
     body = AwsCleaner.new.parse(message.body)
     id = message.receipt_handle
     now = Time.now.utc
@@ -67,18 +67,22 @@ loop do
     end
 
     @instance_id = AwsCleaner.new.process_message(body)
-    chef_node = AwsCleaner::Chef.get_chef_node_name(@instance_id, @config)
     elapsed_time = now - launch_time
     p "launch_time: #{launch_time}"
     p "now: #{now}"
-    # if the node exists in chef it hass bootstrapped
+    # if the node is no longer in aws we don't care anymore
+    # we can delete the message message
+    if !AwsWatcher::EC2.instance_alive?(@instance_id, @config)
+      p "instance: #{@instance_id} is not in aws anymore, removing message from queue"
+      AwsCleaner.new.delete_message(id, @config)
+    # if the node exists in chef it has bootstrapped
     # so we can delete the message
-    if chef_node || !AwsWatcher::EC2.instance_alive?(@instance_id, @config)
+    elsif AwsWatcher::Chef.registered?(@instance_id, @config)
       p "instance: #{@instance_id} has bootstrapped, removing message from queue"
       AwsCleaner.new.delete_message(id, @config)
-
+    else
+      p "instance: #{@instance_id}, launched: #{launch_time}, elapsed: #{elapsed_time} seconds"
     end
-    p "instance: #{@instance_id}, launched: #{launch_time}, elapsed: #{elapsed_time}"
     # if the elapsed time is less than how long we consider
     # a 'normal' converge time that's ok we just move on and
     # wait for another pass
@@ -96,9 +100,8 @@ loop do
       p 'node elaspsed time is too high'
       notification = "node: #{@instance_id} has not checked in, "
       notification += 'it should have converged by: '
-      notification += "#{@config[:bootstrap][:converged_by]} "
-      notification += 'and has been running since:and has been '
-      notification += "running since: #{elapsed_time}"
+      notification += "#{@config[:bootstrap][:converged_by]} seconds "
+      notification += "and has been running since: #{launch_time}"
       AwsCleaner::Notify.notify_chat(notification, @config)
     end
   end
