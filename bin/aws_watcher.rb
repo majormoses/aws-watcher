@@ -37,13 +37,29 @@ end
 # get options
 opts = Trollop.options do
   opt :config, 'Path to config file', type: :string, default: 'config.yml'
+  opt :tag, 'tagName:tagValue1,tagValue2', type: String, required: true
 end
+
 
 @config = config(opts[:config])
 
 # initialize clients
 @sqs_client = AwsCleaner::SQS.client(@config)
 @chef_client = AwsCleaner::Chef.client(@config)
+
+# get tags
+begin
+  @tag_name = opts[:tag].split(':')[0].strip
+  @tag_values = opts[:tag].split(':')[1].split(',').strip
+  p "#{@tag_name}, #{@tag_values}"
+rescue
+  msg = "You passed be a tag of #{ops[:tag]} which is not valid "
+  msg += 'tags must look like this: -t tag:value you can'
+  msg += 'optionally pass multiple values for the same tag like '
+  msg += 'this -t tag:value1,value2'
+  p msg
+  exit 1
+end
 
 # start program in infinate loop
 loop do
@@ -53,9 +69,9 @@ loop do
     visibility_timeout: 3
   ).messages
 
-  puts "Got #{messages.size} message(s)"
+  puts "Got #{messages.size} message(s)" # unless messages.size.zero?
   messages.each_with_index do |message, index|
-    puts "Looking at message number #{index}" unless messages.size.zero?
+    puts "Looking at message number #{index}" # unless messages.size.zero?
     body = AwsCleaner.new.parse(message.body)
     id = message.receipt_handle
     now = Time.now.utc
@@ -80,6 +96,11 @@ loop do
     elsif AwsWatcher::Chef.registered?(@instance_id, @config)
       p "instance: #{@instance_id} has bootstrapped, removing message from queue"
       AwsCleaner.new.delete_message(id, @config)
+      next
+    elsif !AwsWatcher::EC2.tag_matches?(@instance_id, @tag_name, @tag_values, @config)
+      p "instance: #{@instance_id} has not bootstrap and was deleted because it did not have a tag of: #{@tag_name} matching one of these values: #{@tag_values}"
+      AwsCleaner.new.delete_message(id, @config)
+      next
     else
       p "instance: #{@instance_id}, launched: #{launch_time}, elapsed: #{elapsed_time} seconds"
     end
