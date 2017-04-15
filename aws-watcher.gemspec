@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'aws-watcher'
-  s.version     = '0.2.0'
+  s.version     = '0.3.1'
   s.summary     = 'AWS Watcher tracks EC2 instances being started to ensure they bootstrap to chef'
   s.description = s.summary
   s.authors     = ['Ben Abrams']

@@ -36,6 +36,23 @@ class AwsWatcher
       end
       false
     end
+
+    def self.tag_matches?(id, tag, values, config)
+      instances = AwsWatcher::EC2.client(config).describe_instances(
+        instance_ids: [id],
+        filters: [
+          {
+            name: "tag:#{tag}",
+            values: values.to_a
+          }
+        ]
+      )
+      if instances.reservations.empty?
+        false
+      else
+        true
+      end
+    end
   end
 
   module Notify
