@@ -39,4 +39,4 @@
       :variable: 'node'
       :method: 'get_chef_node_name'
       :argument: '@instance_id'
-:poll_time: 60:poll_time: 60
+:poll_time: 60
