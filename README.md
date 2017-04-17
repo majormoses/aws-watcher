@@ -49,9 +49,9 @@ The app takes a configuration file via arg `-c`. If `-c` is omitted it will look
 Due to limitations on Cloudwatch alert filtering there is no way to support multiple chef servers in the same aws account and region without filtering on something like an aws tag. As such we decided to go a simple route and have this specified via arg `-t`. The idea is that many companies need multiple chef servers in the same aws account and in the same region but may be separated by business unit or environment.
 
 Example use cases for aws tags:
-- `environment:dev,qa`
-- `environment:prod1,prod2`
-- `chef_server:my_corp_biz_unit_chef_server`
+- Single chef server for an org/business unit or per environment chef servers: `environment:dev` or `biz_unit:foo`
+- Single chef server with multiple environments: `environment:prod1,prod2`
+- Single chef server (possibly mixed with other groups using other CM): `chef_managed:true`
 
 
 
