@@ -1,9 +1,10 @@
 # Changelog
 
 ### Unreleased
+- improving documentation on aws tag filtering
 
 #### 0.3.1
-Just accidental issue with pre-release no real changes.
+- Just accidental issue with pre-release no real changes.
 
 #### 0.3.0
 Breaking Changes
